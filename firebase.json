@@ -1,0 +1,13 @@
+{
+  "hosting": {
+    "site": "solar-system-d4e18",
+    "public": "dist",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
