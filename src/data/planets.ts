@@ -10,6 +10,10 @@ export const PLANETS: PlanetConfig[] = [
     radius: 1.25,
     rotationPeriodHours: 1407.6,
     axialTiltDeg: 0.03,
+    description: 'The smallest and fastest planet, Mercury is the closest to the Sun and experiences extreme temperature shifts.',
+    planetType: 'Terrestrial Planet',
+    surfaceTemperature: '-173°C to 427°C',
+    moons: 0,
   },
   {
     id: 'venus',
@@ -20,6 +24,10 @@ export const PLANETS: PlanetConfig[] = [
     radius: 2.1,
     rotationPeriodHours: -5832.5,
     axialTiltDeg: 177.4,
+    description: 'Often called Earth’s twin in size, Venus has a toxic atmosphere and surface temperatures hot enough to melt lead.',
+    planetType: 'Terrestrial Planet',
+    surfaceTemperature: '462°C',
+    moons: 0,
   },
   {
     id: 'earth',
@@ -31,6 +39,9 @@ export const PLANETS: PlanetConfig[] = [
     rotationPeriodHours: 23.93,
     axialTiltDeg: 23.44,
     moons: 1,
+    description: 'Our home planet and the only known world to harbor life. It has abundant liquid water on its surface.',
+    planetType: 'Terrestrial Planet',
+    surfaceTemperature: '-88°C to 58°C',
   },
   {
     id: 'mars',
@@ -41,6 +52,10 @@ export const PLANETS: PlanetConfig[] = [
     radius: 1.65,
     rotationPeriodHours: 24.62,
     axialTiltDeg: 25.19,
+    description: 'The Red Planet is a dusty, cold, desert world with a very thin atmosphere and evidence of ancient floods.',
+    planetType: 'Terrestrial Planet',
+    surfaceTemperature: '-153°C to 20°C',
+    moons: 2,
   },
   {
     id: 'jupiter',
@@ -51,6 +66,10 @@ export const PLANETS: PlanetConfig[] = [
     radius: 5.8,
     rotationPeriodHours: 9.93,
     axialTiltDeg: 3.13,
+    description: 'More than twice as massive as all other planets combined, Jupiter is a gas giant famous for its Great Red Spot.',
+    planetType: 'Gas Giant',
+    surfaceTemperature: '-110°C',
+    moons: 95,
   },
   {
     id: 'saturn',
@@ -62,6 +81,10 @@ export const PLANETS: PlanetConfig[] = [
     rotationPeriodHours: 10.7,
     axialTiltDeg: 26.73,
     hasRings: true,
+    description: 'Adorned with a dazzling system of icy rings, Saturn is a gas giant made mostly of hydrogen and helium.',
+    planetType: 'Gas Giant',
+    surfaceTemperature: '-140°C',
+    moons: 146,
   },
   {
     id: 'uranus',
@@ -72,6 +95,10 @@ export const PLANETS: PlanetConfig[] = [
     radius: 3.8,
     rotationPeriodHours: -17.24,
     axialTiltDeg: 97.77,
+    description: 'An ice giant that rotates nearly on its side. Uranus was the first planet found with the aid of a telescope.',
+    planetType: 'Ice Giant',
+    surfaceTemperature: '-195°C',
+    moons: 28,
   },
   {
     id: 'neptune',
@@ -82,7 +109,25 @@ export const PLANETS: PlanetConfig[] = [
     radius: 3.7,
     rotationPeriodHours: 16.11,
     axialTiltDeg: 28.32,
+    description: 'Dark, cold, and whipped by supersonic winds, ice giant Neptune is the most distant major planet in our solar system.',
+    planetType: 'Ice Giant',
+    surfaceTemperature: '-200°C',
+    moons: 16,
   },
+  {
+    id: 'pluto',
+    name: 'Pluto',
+    astronomyBody: 'Pluto',
+    color: '#cfc1b8',
+    secondaryColor: '#968881',
+    radius: 0.8,
+    rotationPeriodHours: -153.29,
+    axialTiltDeg: 122.5,
+    description: 'A complex and mysterious world with mountains, valleys, plains, and craters. Once considered the 9th planet.',
+    planetType: 'Dwarf Planet',
+    surfaceTemperature: '-225°C',
+    moons: 5,
+  }
 ];
 
 export const SUN_RADIUS = 5.6;

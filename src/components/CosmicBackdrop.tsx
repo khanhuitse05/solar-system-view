@@ -100,6 +100,48 @@ function buildOortCloud(): PointCloudData {
   return { geometry, material };
 }
 
+function buildMilkyWay(seed: number, count: number, radius: number): PointCloudData {
+  const random = seededRandom(seed);
+  const positions: number[] = [];
+  const colors: number[] = [];
+
+  for (let index = 0; index < count; index += 1) {
+    const theta = random() * Math.PI * 2;
+    const z = (random() - 0.5) * (random() - 0.5) * 2; 
+    const horizontal = Math.sqrt(1 - z * z);
+    const distance = radius * (0.9 + random() * 0.2);
+
+    const tilt = 0.5;
+    const x = Math.cos(theta) * horizontal * distance;
+    const yOrig = z * distance;
+    const zOrig = Math.sin(theta) * horizontal * distance;
+
+    const y = yOrig * Math.cos(tilt) - zOrig * Math.sin(tilt);
+    const zFinal = yOrig * Math.sin(tilt) + zOrig * Math.cos(tilt);
+
+    positions.push(x, y, zFinal);
+
+    const brightness = 0.3 + random() * 0.4;
+    colors.push(brightness, brightness * 0.95, brightness * 1.1);
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
+
+  const material = new PointsMaterial({
+    size: 0.8,
+    transparent: true,
+    opacity: 0.4,
+    vertexColors: true,
+    depthWrite: false,
+    blending: AdditiveBlending,
+    sizeAttenuation: false,
+  });
+
+  return { geometry, material };
+}
+
 function StarLayer({ data }: { data: PointCloudData }) {
   return <points geometry={data.geometry} material={data.material} />;
 }
@@ -140,10 +182,12 @@ export function CosmicBackdrop() {
   const nearStars = useMemo(() => buildStarLayer(20260612, 1800, 470, 1.05, 0.82), []);
   const farStars = useMemo(() => buildStarLayer(9973, 2600, 680, 0.72, 0.64), []);
   const brightStars = useMemo(() => buildStarLayer(424242, 260, 640, 1.9, 0.95), []);
+  const milkyWay = useMemo(() => buildMilkyWay(1337, 12000, 600), []);
 
   return (
     <group>
       <StarLayer data={farStars} />
+      <StarLayer data={milkyWay} />
       <StarLayer data={nearStars} />
       <StarLayer data={brightStars} />
       <OortCloud />

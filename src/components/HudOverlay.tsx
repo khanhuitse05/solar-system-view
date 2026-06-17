@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Eye, EyeOff, FastForward, MapPin, Orbit, Sparkl
 import { PLANETS } from '../data/planets';
 import { ControlButton } from './ControlButton';
 import { VisibilityChart } from './VisibilityChart';
+import { PlanetFactCard } from './PlanetFactCard';
 import { formatDegrees, formatTime, formatUtc, getVisibilityTimeline } from '../utils/realtimeAstronomy';
 import type { FocusTarget, GeoPosition, SolarSystemSnapshot } from '../types';
 
@@ -22,6 +23,8 @@ type Props = {
   onPanoramicView: () => void;
   onToggleSimulation: () => void;
   onSimulationScaleChange: (daysPerSecond: number) => void;
+  exaggeratedScale: boolean;
+  onToggleScale: () => void;
 };
 
 export function HudOverlay({
@@ -40,6 +43,8 @@ export function HudOverlay({
   onPanoramicView,
   onToggleSimulation,
   onSimulationScaleChange,
+  exaggeratedScale,
+  onToggleScale,
 }: Props) {
   const [isVisibilityExpanded, setIsVisibilityExpanded] = useState(false);
 
@@ -183,6 +188,7 @@ export function HudOverlay({
               </div>
               <VisibilityChart data={timelineData} currentTimeMs={snapshot.date.getTime()} />
             </aside>
+            <PlanetFactCard planetId={focusedPlanet.id} />
           </div>
         )}
       </section>
@@ -195,6 +201,7 @@ export function HudOverlay({
           </div>
           <div className="shrink-0"><ControlButton label="Elliptical" active={showOrbits} onClick={onToggleOrbits} /></div>
           <div className="shrink-0"><ControlButton label="Labels" active={showLabels} onClick={onToggleLabels} /></div>
+          <div className="shrink-0"><ControlButton label={exaggeratedScale ? "Scale: Exagg." : "Scale: Real"} active={!exaggeratedScale} onClick={onToggleScale} /></div>
           <div className="shrink-0"><ControlButton label="Simulation" active={simulationEnabled} onClick={onToggleSimulation} /></div>
           <div className="shrink-0"><ControlButton label="ReCenter" onClick={onPanoramicView} /></div>
         </div>

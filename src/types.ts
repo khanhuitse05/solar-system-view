@@ -11,6 +11,9 @@ export type PlanetConfig = {
   axialTiltDeg: number;
   hasRings?: boolean;
   moons?: number;
+  description?: string;
+  planetType?: string;
+  surfaceTemperature?: string;
 };
 
 export type GeoPosition = {

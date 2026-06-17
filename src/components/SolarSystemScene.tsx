@@ -6,6 +6,8 @@ import { Vector3 } from 'three';
 import { PLANETS, AU_SCALE } from '../data/planets';
 import { CosmicBackdrop } from './CosmicBackdrop';
 import { OrbitPath } from './OrbitPath';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { AsteroidBelt } from './AsteroidBelt';
 import { Planet } from './Planet';
 import { Sun } from './Sun';
 import type { FocusTarget, GeoPosition, SolarSystemSnapshot } from '../types';
@@ -16,6 +18,7 @@ type Props = {
   snapshot: SolarSystemSnapshot;
   observer: GeoPosition;
   focusTarget: FocusTarget;
+  exaggeratedScale: boolean;
   onSelectPlanet: (planetId: string) => void;
 };
 
@@ -107,7 +110,7 @@ function CameraDirector({ controlsRef, focusTarget, snapshot }: CameraDirectorPr
   return null;
 }
 
-export function SolarSystemScene({ showOrbits, showLabels, snapshot, observer, focusTarget, onSelectPlanet }: Props) {
+export function SolarSystemScene({ showOrbits, showLabels, snapshot, observer, focusTarget, exaggeratedScale, onSelectPlanet }: Props) {
   const controlsRef = useRef<any>(null);
 
   return (
@@ -122,6 +125,10 @@ export function SolarSystemScene({ showOrbits, showLabels, snapshot, observer, f
       <hemisphereLight args={['#334155', '#02040b', 0.12]} />
       <CosmicBackdrop />
       <Sun />
+      <AsteroidBelt />
+      <EffectComposer>
+        <Bloom intensity={1.5} luminanceThreshold={0.5} luminanceSmoothing={0.9} />
+      </EffectComposer>
       <CameraDirector controlsRef={controlsRef} focusTarget={focusTarget} snapshot={snapshot} />
       {PLANETS.map((planet) => (
         <OrbitPath key={`${planet.id}-orbit`} planet={planet} date={snapshot.date} visible={showOrbits} />
@@ -138,6 +145,7 @@ export function SolarSystemScene({ showOrbits, showLabels, snapshot, observer, f
             date={snapshot.date}
             showLabel={showLabels}
             observer={observer}
+            exaggeratedScale={exaggeratedScale}
             onSelect={onSelectPlanet}
           />
         );

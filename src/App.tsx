@@ -15,6 +15,7 @@ export function App() {
   const [simulationDaysPerSecond, setSimulationDaysPerSecond] = useState(1);
   const [simulatedDateMs, setSimulatedDateMs] = useState(() => Date.now());
   const [focusTarget, setFocusTarget] = useState<FocusTarget>({ id: 'panorama', nonce: 0 });
+  const [exaggeratedScale, setExaggeratedScale] = useState(true);
 
   useEffect(() => {
     if (!simulationEnabled) {
@@ -59,6 +60,7 @@ export function App() {
         snapshot={sceneSnapshot}
         observer={location.position}
         focusTarget={focusTarget}
+        exaggeratedScale={exaggeratedScale}
         onSelectPlanet={focusPlanet}
       />
       <HudOverlay
@@ -84,6 +86,8 @@ export function App() {
           });
         }}
         onSimulationScaleChange={setSimulationDaysPerSecond}
+        exaggeratedScale={exaggeratedScale}
+        onToggleScale={() => setExaggeratedScale((v) => !v)}
       />
     </main>
   );

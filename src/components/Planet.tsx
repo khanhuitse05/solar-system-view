@@ -10,6 +10,7 @@ type Props = {
   date: Date;
   showLabel: boolean;
   observer: GeoPosition;
+  exaggeratedScale: boolean;
   onSelect: (planetId: string) => void;
 };
 
@@ -224,7 +225,7 @@ function MoonDots({ planet, showLabel }: { planet: PlanetConfig; showLabel: bool
 
 const J2000_MS = Date.UTC(2000, 0, 1, 12, 0, 0);
 
-export function Planet({ planet, ephemeris, date, showLabel, observer, onSelect }: Props) {
+export function Planet({ planet, ephemeris, date, showLabel, observer, exaggeratedScale, onSelect }: Props) {
   const groupRef = useRef<Group>(null);
   const planetRef = useRef<Group>(null);
   const axialTilt = MathUtils.degToRad(planet.axialTiltDeg);
@@ -234,7 +235,7 @@ export function Planet({ planet, ephemeris, date, showLabel, observer, onSelect 
     if (groupRef.current) {
       groupRef.current.position.set(position[0], position[1], position[2]);
       const distance = camera.position.distanceTo(groupRef.current.position);
-      const scale = MathUtils.clamp(distance / 110, 1, 3.1);
+      const scale = exaggeratedScale ? MathUtils.clamp(distance / 110, 1, 3.1) : (planet.id === 'sun' ? 1 : 0.08);
       groupRef.current.scale.setScalar(scale);
     }
 
