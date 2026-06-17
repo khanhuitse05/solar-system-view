@@ -25,6 +25,9 @@ type Props = {
   onSimulationScaleChange: (daysPerSecond: number) => void;
   exaggeratedScale: boolean;
   onToggleScale: () => void;
+  isTouring: boolean;
+  onToggleTour: () => void;
+  onToggleSurfaceMode: () => void;
 };
 
 export function HudOverlay({
@@ -45,6 +48,9 @@ export function HudOverlay({
   onSimulationScaleChange,
   exaggeratedScale,
   onToggleScale,
+  isTouring,
+  onToggleTour,
+  onToggleSurfaceMode,
 }: Props) {
   const [isVisibilityExpanded, setIsVisibilityExpanded] = useState(false);
 
@@ -188,7 +194,7 @@ export function HudOverlay({
               </div>
               <VisibilityChart data={timelineData} currentTimeMs={snapshot.date.getTime()} />
             </aside>
-            <PlanetFactCard planetId={focusedPlanet.id} />
+            <PlanetFactCard planetId={focusedPlanet.id} isSurfaceMode={focusTarget.surfaceMode} onToggleSurfaceMode={onToggleSurfaceMode} />
           </div>
         )}
       </section>
@@ -203,6 +209,7 @@ export function HudOverlay({
           <div className="shrink-0"><ControlButton label="Labels" active={showLabels} onClick={onToggleLabels} /></div>
           <div className="shrink-0"><ControlButton label={exaggeratedScale ? "Scale: Exagg." : "Scale: Real"} active={!exaggeratedScale} onClick={onToggleScale} /></div>
           <div className="shrink-0"><ControlButton label="Simulation" active={simulationEnabled} onClick={onToggleSimulation} /></div>
+          <div className="shrink-0"><ControlButton label={isTouring ? "Stop Tour" : "Play Tour"} active={isTouring} onClick={onToggleTour} /></div>
           <div className="shrink-0"><ControlButton label="ReCenter" onClick={onPanoramicView} /></div>
         </div>
         <div className="flex w-full md:w-auto md:min-w-72 flex-wrap items-center justify-between md:justify-end gap-3">

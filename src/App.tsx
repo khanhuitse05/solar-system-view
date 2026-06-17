@@ -16,6 +16,23 @@ export function App() {
   const [simulatedDateMs, setSimulatedDateMs] = useState(() => Date.now());
   const [focusTarget, setFocusTarget] = useState<FocusTarget>({ id: 'panorama', nonce: 0 });
   const [exaggeratedScale, setExaggeratedScale] = useState(true);
+  const [isTouring, setIsTouring] = useState(false);
+
+  useEffect(() => {
+    if (!isTouring) return;
+
+    let currentIndex = 0;
+    const tourPlanets = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+
+    const intervalId = setInterval(() => {
+      currentIndex = (currentIndex + 1) % tourPlanets.length;
+      setFocusTarget((target) => ({ id: tourPlanets[currentIndex], nonce: target.nonce + 1 }));
+    }, 10000);
+
+    setFocusTarget((target) => ({ id: tourPlanets[0], nonce: target.nonce + 1 }));
+
+    return () => clearInterval(intervalId);
+  }, [isTouring]);
 
   useEffect(() => {
     if (!simulationEnabled) {
@@ -88,6 +105,9 @@ export function App() {
         onSimulationScaleChange={setSimulationDaysPerSecond}
         exaggeratedScale={exaggeratedScale}
         onToggleScale={() => setExaggeratedScale((v) => !v)}
+        isTouring={isTouring}
+        onToggleTour={() => setIsTouring(!isTouring)}
+        onToggleSurfaceMode={() => setFocusTarget(t => ({ ...t, surfaceMode: !t.surfaceMode, nonce: t.nonce + 1 }))}
       />
     </main>
   );

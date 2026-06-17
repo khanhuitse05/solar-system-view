@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { Billboard, Text } from '@react-three/drei';
+import { Billboard, Text, Trail } from '@react-three/drei';
 import { AdditiveBlending, CanvasTexture, Color, DoubleSide, Group, MathUtils, SRGBColorSpace } from 'three';
 import { useFrame } from '@react-three/fiber';
 import type { GeoPosition, PlanetConfig, PlanetEphemeris } from '../types';
@@ -31,7 +31,7 @@ function PlanetSurface({ planet }: { planet: PlanetConfig }) {
 
   return (
     <group>
-      <mesh>
+      <mesh castShadow receiveShadow>
         <sphereGeometry args={[planet.radius, 48, 32]} />
         <meshStandardMaterial
           map={texture}
@@ -139,7 +139,7 @@ function SurfaceDetails({ planet, color }: { planet: PlanetConfig; color: Color 
 
 function SaturnRings({ radius }: { radius: number }) {
   return (
-    <mesh rotation={[MathUtils.degToRad(72), 0, 0]}>
+    <mesh rotation={[MathUtils.degToRad(72), 0, 0]} castShadow receiveShadow>
       <ringGeometry args={[radius * 1.35, radius * 2.2, 96]} />
       <meshStandardMaterial color="#d6c291" transparent opacity={0.72} roughness={0.7} side={DoubleSide} />
     </mesh>
@@ -199,7 +199,7 @@ function MoonDots({ planet, showLabel }: { planet: PlanetConfig; showLabel: bool
         const angle = (index / moonCount) * Math.PI * 2;
         const distance = planet.radius + 2.8 + index * 0.55;
         return (
-          <mesh key={index} position={[Math.cos(angle) * distance, 0, Math.sin(angle) * distance]}>
+          <mesh key={index} position={[Math.cos(angle) * distance, 0, Math.sin(angle) * distance]} castShadow receiveShadow>
             <sphereGeometry args={[0.22, 12, 8]} />
             <meshStandardMaterial color="#cbd5e1" roughness={0.9} />
             {showLabel ? (
@@ -254,7 +254,17 @@ export function Planet({ planet, ephemeris, date, showLabel, observer, exaggerat
       }}
     >
       <group ref={planetRef}>
-        <PlanetSurface planet={planet} />
+        <Trail
+          width={planet.radius * 0.8}
+          color={planet.color}
+          length={400}
+          decay={1.2}
+          local={false}
+          stride={0.1}
+          interval={1}
+        >
+          <PlanetSurface planet={planet} />
+        </Trail>
         {planet.hasRings ? <SaturnRings radius={planet.radius} /> : null}
         <MoonDots planet={planet} showLabel={showLabel} />
         <TelescopeMarker planet={planet} observer={observer} />

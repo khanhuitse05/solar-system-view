@@ -74,10 +74,16 @@ function CameraDirector({ controlsRef, focusTarget, snapshot }: CameraDirectorPr
         }
         const config = PLANETS.find((planet) => planet.id === focusTarget.id);
         const distance = Math.max((config?.radius ?? 2) * 8, 18);
-        toPosition = toTarget
-          .clone()
-          .add(outward.multiplyScalar(distance))
-          .add(new Vector3(0, distance * 0.42, distance * 0.35));
+        
+        if (focusTarget.surfaceMode && config) {
+          toPosition = toTarget.clone().add(outward.multiplyScalar(config.radius * 1.05));
+          toTarget.add(new Vector3(0, config.radius, 0)).add(outward.multiplyScalar(config.radius));
+        } else {
+          toPosition = toTarget
+            .clone()
+            .add(outward.multiplyScalar(distance))
+            .add(new Vector3(0, distance * 0.42, distance * 0.35));
+        }
       }
     }
 
@@ -115,6 +121,7 @@ export function SolarSystemScene({ showOrbits, showLabels, snapshot, observer, f
 
   return (
     <Canvas
+      shadows
       camera={{ position: [0, 52, 92], fov: 46, near: 0.1, far: 3600 }}
       gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
       dpr={[1, 2]}

@@ -76,7 +76,15 @@ export function Sun() {
 
   return (
     <group>
-      <pointLight intensity={2950} distance={0} decay={1.55} color="#fff1b8" />
+      <pointLight 
+        castShadow 
+        intensity={2950} 
+        distance={0} 
+        decay={1.55} 
+        color="#fff1b8" 
+        shadow-mapSize={[2048, 2048]} 
+        shadow-bias={-0.0001}
+      />
       <mesh ref={ref}>
         <sphereGeometry args={[SUN_RADIUS, 96, 56]} />
         <meshBasicMaterial map={texture} color="#fff1a6" />

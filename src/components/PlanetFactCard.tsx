@@ -2,9 +2,11 @@ import { PLANETS } from '../data/planets';
 
 type Props = {
   planetId: string;
+  isSurfaceMode?: boolean;
+  onToggleSurfaceMode?: () => void;
 };
 
-export function PlanetFactCard({ planetId }: Props) {
+export function PlanetFactCard({ planetId, isSurfaceMode, onToggleSurfaceMode }: Props) {
   const planet = PLANETS.find((p) => p.id === planetId);
 
   if (!planet) {
@@ -68,6 +70,11 @@ export function PlanetFactCard({ planetId }: Props) {
           </>
         )}
       </div>
+      {onToggleSurfaceMode && planetId !== 'sun' && planetId !== 'moon' && (
+        <button onClick={onToggleSurfaceMode} className="mt-3 w-full rounded bg-cyan-900/50 py-1.5 text-center text-cyan-100 hover:bg-cyan-800/70 transition">
+          {isSurfaceMode ? "Launch to Space" : "Land on Surface"}
+        </button>
+      )}
     </div>
   );
 }

@@ -52,6 +52,7 @@ export type SolarSystemSnapshot = {
 export type FocusTarget = {
   id: string | 'panorama';
   nonce: number;
+  surfaceMode?: boolean;
 };
 
 export type AltitudePoint = {
