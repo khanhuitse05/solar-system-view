@@ -1,7 +1,9 @@
-import { Eye, EyeOff, FastForward, MapPin, Orbit, Sparkles, SunMedium, Telescope } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { ChevronDown, ChevronUp, Eye, EyeOff, FastForward, MapPin, Orbit, Sparkles, SunMedium, Telescope, X } from 'lucide-react';
 import { PLANETS } from '../data/planets';
 import { ControlButton } from './ControlButton';
-import { formatDegrees, formatTime, formatUtc } from '../utils/realtimeAstronomy';
+import { VisibilityChart } from './VisibilityChart';
+import { formatDegrees, formatTime, formatUtc, getVisibilityTimeline } from '../utils/realtimeAstronomy';
 import type { FocusTarget, GeoPosition, SolarSystemSnapshot } from '../types';
 
 type Props = {
@@ -39,11 +41,34 @@ export function HudOverlay({
   onToggleSimulation,
   onSimulationScaleChange,
 }: Props) {
+  const [isVisibilityExpanded, setIsVisibilityExpanded] = useState(false);
+
+  const focusedPlanet = useMemo(() => {
+    if (focusTarget.id === 'panorama' || focusTarget.id === 'earth') return null;
+    if (focusTarget.id === 'sun') return { id: 'sun', name: 'Sun', astronomyBody: 'Sun' };
+    if (focusTarget.id === 'moon') return { id: 'moon', name: 'Moon', astronomyBody: 'Moon' };
+    return snapshot.planets.find(p => p.id === focusTarget.id);
+  }, [focusTarget, snapshot]);
+
+  const timelineData = useMemo(() => {
+    if (!focusedPlanet) return [];
+
+    let astronomyBody = '';
+    if (focusedPlanet.id === 'sun') astronomyBody = 'Sun';
+    else if (focusedPlanet.id === 'moon') astronomyBody = 'Moon';
+    else {
+      const config = PLANETS.find(p => p.id === focusedPlanet.id);
+      if (!config) return [];
+      astronomyBody = config.astronomyBody;
+    }
+
+    return getVisibilityTimeline(astronomyBody, snapshot.date, observer);
+  }, [focusedPlanet, snapshot.date, observer]);
   const visiblePlanets = snapshot.planets.filter((planet) => planet.visibleThroughTelescope);
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex flex-col justify-between gap-4 p-4 text-slate-100">
-      <header className="hud-panel pointer-events-auto grid gap-4 rounded-lg px-4 py-3 lg:grid-cols-[1.25fr_2fr_auto]">
+      <header className="hud-panel pointer-events-auto grid gap-4 rounded-lg px-4 py-3 lg:grid-cols-[1.25fr_2fr]">
         <div className="flex items-center gap-3">
           <Sparkles className="h-5 w-5 text-cyan-200" />
           <div>
@@ -53,76 +78,47 @@ export function HudOverlay({
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 font-mono text-xs text-slate-300 md:grid-cols-6">
-          <div>
+        <div className="flex overflow-x-auto pb-2 gap-4 font-mono text-xs text-slate-300 md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
+          <div className="shrink-0">
             <span className="block uppercase tracking-[0.18em] text-slate-500">Local</span>
             {formatTime(snapshot.date)}
           </div>
-          <div>
-            <span className="block uppercase tracking-[0.18em] text-slate-500">UTC</span>
-            {formatUtc(snapshot.date)}
+          <div className="shrink-0">
+            <span className="block uppercase tracking-[0.18em] text-slate-500">Lat</span>
+            {formatDegrees(observer.latitude, 4)}
           </div>
-          <div>
-            <span className="block uppercase tracking-[0.18em] text-slate-500">Planets</span>
-            {PLANETS.length}
+          <div className="shrink-0">
+            <span className="block uppercase tracking-[0.18em] text-slate-500">Lng</span>
+            {formatDegrees(observer.longitude, 4)}
           </div>
-          <div>
-            <span className="block uppercase tracking-[0.18em] text-slate-500">Visible</span>
-            {visiblePlanets.length}
-          </div>
-          <div>
-            <span className="block uppercase tracking-[0.18em] text-slate-500">Mode</span>
-            {simulationEnabled ? 'Sim' : 'Real'}
-          </div>
-          <div>
+          <div className="shrink-0">
             <span className="block uppercase tracking-[0.18em] text-slate-500">Sun Alt</span>
             {formatDegrees(snapshot.sunAltitudeDeg, 1)}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onPanoramicView}
-          className="justify-self-end rounded-md border border-cyan-300/30 bg-cyan-300/10 px-3 py-2 text-sm text-cyan-100 transition hover:bg-cyan-300/20"
-        >
-          Panoramic View
-        </button>
       </header>
 
-      <section className="pointer-events-none flex flex-1 items-start overflow-hidden">
-        <div className="pointer-events-auto flex max-h-full w-full flex-col gap-3 overflow-hidden sm:w-80">
-          <aside className="hud-panel rounded-lg p-3 text-xs text-slate-300">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-cyan-100">
-              <MapPin className="h-4 w-4" />
-              Telescope Location
-            </div>
-            <div className="space-y-2 font-mono">
-              <div>Latitude: {formatDegrees(observer.latitude, 4)}</div>
-              <div>Longitude: {formatDegrees(observer.longitude, 4)}</div>
-              <div>Accuracy: {observer.accuracyMeters ? `${Math.round(observer.accuracyMeters)} m` : 'fallback'}</div>
-              <div>Status: {locationStatus}</div>
-            </div>
-            {locationError ? <div className="mt-3 rounded-md border border-amber-300/25 bg-amber-300/10 p-2 text-amber-100">{locationError}</div> : null}
-            <div className="mt-4 flex items-start gap-2 rounded-md border border-slate-500/20 bg-slate-950/35 p-2">
-              <SunMedium className="mt-0.5 h-4 w-4 text-amber-200" />
-              <p>
-                {snapshot.daylight
-                  ? 'Daylight: planets above the horizon are marked daylight-limited.'
-                  : snapshot.twilight
-                    ? 'Twilight: bright planets may be possible, but contrast is reduced.'
-                    : 'Night sky: planets above the horizon are marked visible.'}
-              </p>
-            </div>
-          </aside>
+      <section className="pointer-events-none flex flex-1 w-full items-start justify-between overflow-hidden gap-4">
+        <div className="pointer-events-auto flex max-h-full w-64 flex-col gap-3 overflow-hidden sm:w-80">
 
-          <aside className="hud-panel min-h-0 overflow-auto rounded-lg p-3 text-xs text-slate-300">
-            <div className="mb-3 flex items-center justify-between gap-3">
+          <aside className="hud-panel flex min-h-0 flex-col rounded-lg p-3 text-xs text-slate-300">
+            <button
+              type="button"
+              className={`flex w-full items-center justify-between gap-3 text-left md:cursor-default ${isVisibilityExpanded ? 'mb-3' : 'mb-0 md:mb-3'}`}
+              onClick={() => setIsVisibilityExpanded((prev) => !prev)}
+            >
               <div className="flex items-center gap-2 text-sm font-semibold text-cyan-100">
                 <Eye className="h-4 w-4" />
                 Telescope Visibility Now
               </div>
-              <div className="shrink-0 text-slate-500">alt / az / mag</div>
-            </div>
-            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="hidden shrink-0 text-slate-500 md:block">alt / az / mag</div>
+                <div className="text-cyan-200 md:hidden">
+                  {isVisibilityExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </div>
+              </div>
+            </button>
+            <div className={`space-y-2 overflow-y-auto pr-1 ${isVisibilityExpanded ? 'block' : 'hidden md:block'}`}>
               {snapshot.planets
                 .filter((planet) => planet.id !== 'earth')
                 .map((planet) => (
@@ -137,13 +133,12 @@ export function HudOverlay({
                         onSelectPlanet(planet.id);
                       }
                     }}
-                    className={`rounded-md border px-3 py-2 ${
-                      focusTarget.id === planet.id
+                    className={`rounded-md border px-3 py-2 ${focusTarget.id === planet.id
                         ? 'border-cyan-200/70 bg-cyan-300/15 text-cyan-50'
                         : planet.visibleThroughTelescope
-                        ? 'border-emerald-300/35 bg-emerald-300/10 text-emerald-50'
-                        : 'border-slate-500/15 bg-slate-950/35'
-                    } cursor-pointer transition hover:border-cyan-300/45 hover:bg-cyan-300/10`}
+                          ? 'border-emerald-300/35 bg-emerald-300/10 text-emerald-50'
+                          : 'border-slate-500/15 bg-slate-950/35'
+                      } cursor-pointer transition hover:border-cyan-300/45 hover:bg-cyan-300/10`}
                   >
                     <div className="flex items-center justify-between gap-2 font-semibold">
                       <div className="flex items-center gap-2">
@@ -158,8 +153,8 @@ export function HudOverlay({
                         : planet.status === 'daylight'
                           ? 'Daylight-limited'
                           : planet.status === 'twilight'
-                            ? 'Twilight'
-                            : 'Below horizon'}
+                            ? 'Twilight-limited'
+                            : 'Below Horizon'}
                     </div>
                     <div className="mt-1 font-mono text-[11px] text-slate-300">
                       az {formatDegrees(planet.azimuthDeg, 0)} / {planet.magnitude === null ? '--' : planet.magnitude.toFixed(1)} mag
@@ -167,26 +162,47 @@ export function HudOverlay({
                     </div>
                   </div>
                 ))}
+              {visiblePlanets.length === 0 && <p className="px-1 text-slate-500">No planets currently visible.</p>}
             </div>
           </aside>
         </div>
+
+        {/* Right Column - Visibility Chart */}
+        {focusedPlanet && (
+          <div className="pointer-events-auto flex w-64 flex-col gap-3 sm:w-80 shrink-0">
+            <aside className="hud-panel flex shrink-0 flex-col rounded-lg p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-white">{focusedPlanet.name} Visibility</h2>
+                <button
+                  type="button"
+                  onClick={onPanoramicView}
+                  className="rounded-md p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <VisibilityChart data={timelineData} currentTimeMs={snapshot.date.getTime()} />
+            </aside>
+          </div>
+        )}
       </section>
 
-      <footer className="hud-panel pointer-events-auto mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3 rounded-lg p-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 px-2 text-sm text-slate-300">
+      <footer className="hud-panel pointer-events-auto mx-auto flex w-full max-w-5xl flex-col md:flex-row flex-wrap items-center justify-between gap-3 rounded-lg p-3">
+        <div className="flex w-full overflow-x-auto pb-1 md:w-auto md:flex-wrap items-center gap-2 md:pb-0">
+          <div className="hidden lg:flex items-center gap-2 px-2 text-sm text-slate-300">
             <Orbit className="h-4 w-4 text-cyan-200" />
             AU-scaled real heliocentric positions
           </div>
-          <ControlButton label="Elliptical Paths" active={showOrbits} onClick={onToggleOrbits} />
-          <ControlButton label="Planet Labels" active={showLabels} onClick={onToggleLabels} />
-          <ControlButton label="Simulation Mode" active={simulationEnabled} onClick={onToggleSimulation} />
+          <div className="shrink-0"><ControlButton label="Elliptical" active={showOrbits} onClick={onToggleOrbits} /></div>
+          <div className="shrink-0"><ControlButton label="Labels" active={showLabels} onClick={onToggleLabels} /></div>
+          <div className="shrink-0"><ControlButton label="Simulation" active={simulationEnabled} onClick={onToggleSimulation} /></div>
+          <div className="shrink-0"><ControlButton label="ReCenter" onClick={onPanoramicView} /></div>
         </div>
-        <div className="flex min-w-72 flex-wrap items-center justify-end gap-3">
+        <div className="flex w-full md:w-auto md:min-w-72 flex-wrap items-center justify-between md:justify-end gap-3">
           {simulationEnabled ? (
-            <label className="flex min-w-72 items-center gap-3 text-sm text-slate-200">
-              <FastForward className="h-4 w-4 text-cyan-200" />
-              <span className="whitespace-nowrap font-mono">{simulationDaysPerSecond} day/s</span>
+            <label className="flex w-full md:w-auto md:min-w-72 items-center gap-3 text-sm text-slate-200">
+              <FastForward className="shrink-0 h-4 w-4 text-cyan-200" />
+              <span className="shrink-0 whitespace-nowrap font-mono">{simulationDaysPerSecond} day/s</span>
               <input
                 aria-label="Simulation days per second"
                 type="range"
@@ -195,7 +211,7 @@ export function HudOverlay({
                 step="0.25"
                 value={simulationDaysPerSecond}
                 onChange={(event) => onSimulationScaleChange(Number(event.target.value))}
-                className="w-40 accent-cyan-300"
+                className="w-full md:w-40 accent-cyan-300"
               />
             </label>
           ) : (
@@ -204,7 +220,7 @@ export function HudOverlay({
               realtime clock
             </div>
           )}
-          <div className="font-mono text-xs text-slate-400">drag orbit / wheel zoom / right-drag pan</div>
+          <div className="hidden md:block font-mono text-xs text-slate-400">drag orbit / wheel zoom / right-drag pan</div>
         </div>
       </footer>
     </div>

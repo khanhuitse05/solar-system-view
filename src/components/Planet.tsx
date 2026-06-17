@@ -123,7 +123,6 @@ function createPlanetTexture(planet: PlanetConfig): CanvasTexture {
 
 function SurfaceDetails({ planet, color }: { planet: PlanetConfig; color: Color }) {
   const latitudes = planet.id === 'jupiter' ? [-0.32, -0.14, 0.08, 0.26] : [-0.18, 0.22];
-  const spots = planet.id === 'venus' || planet.id === 'uranus' ? [0.45] : [0.25, 2.4];
 
   return (
     <group>
@@ -133,23 +132,6 @@ function SurfaceDetails({ planet, color }: { planet: PlanetConfig; color: Color 
           <meshStandardMaterial color={color} roughness={0.76} />
         </mesh>
       ))}
-      {spots.map((longitude, index) => {
-        const latitude = index === 0 ? 0.34 : -0.28;
-        const distance = planet.radius * 1.018;
-        return (
-          <mesh
-            key={`spot-${index}`}
-            position={[
-              Math.cos(latitude) * Math.cos(longitude) * distance,
-              Math.sin(latitude) * distance,
-              Math.cos(latitude) * Math.sin(longitude) * distance,
-            ]}
-          >
-            <sphereGeometry args={[Math.max(0.12, planet.radius * 0.13), 16, 12]} />
-            <meshStandardMaterial color={color} roughness={0.7} />
-          </mesh>
-        );
-      })}
     </group>
   );
 }
@@ -203,7 +185,7 @@ function TelescopeMarker({ planet, observer }: { planet: PlanetConfig; observer:
   );
 }
 
-function MoonDots({ planet }: { planet: PlanetConfig }) {
+function MoonDots({ planet, showLabel }: { planet: PlanetConfig; showLabel: boolean }) {
   if (!planet.moons) {
     return null;
   }
@@ -219,6 +201,20 @@ function MoonDots({ planet }: { planet: PlanetConfig }) {
           <mesh key={index} position={[Math.cos(angle) * distance, 0, Math.sin(angle) * distance]}>
             <sphereGeometry args={[0.22, 12, 8]} />
             <meshStandardMaterial color="#cbd5e1" roughness={0.9} />
+            {showLabel ? (
+              <Billboard position={[0, 0.6, 0]}>
+                <Text
+                  color="#e0f2fe"
+                  fontSize={0.8}
+                  anchorX="center"
+                  anchorY="middle"
+                  outlineWidth={0.04}
+                  outlineColor="#020617"
+                >
+                  Moon
+                </Text>
+              </Billboard>
+            ) : null}
           </mesh>
         );
       })}
@@ -259,7 +255,7 @@ export function Planet({ planet, ephemeris, date, showLabel, observer, onSelect 
       <group ref={planetRef}>
         <PlanetSurface planet={planet} />
         {planet.hasRings ? <SaturnRings radius={planet.radius} /> : null}
-        <MoonDots planet={planet} />
+        <MoonDots planet={planet} showLabel={showLabel} />
         <TelescopeMarker planet={planet} observer={observer} />
       </group>
       {planet.id === 'jupiter' || planet.id === 'saturn' || planet.id === 'uranus' || planet.id === 'neptune' ? (

@@ -1,6 +1,6 @@
 import * as Astronomy from 'astronomy-engine';
 import { AU_SCALE, PLANETS } from '../data/planets';
-import type { GeoPosition, PlanetEphemeris, SolarSystemSnapshot, Vector3Tuple, VisibilityStatus } from '../types';
+import type { GeoPosition, PlanetEphemeris, SolarSystemSnapshot, Vector3Tuple, VisibilityStatus, AltitudePoint } from '../types';
 
 const DEFAULT_LOCATION: GeoPosition = {
   latitude: 10.8231,
@@ -98,6 +98,47 @@ export function calculateSolarSystemSnapshot(date: Date, position: GeoPosition |
     };
   });
 
+  const moonBody = Astronomy.Body.Moon;
+  const moonHelio = Astronomy.HelioVector(moonBody, date);
+  const moonHoriz = bodyHorizon(moonBody, date, observer);
+  const moonIllum = safeIllumination(moonBody, date);
+  const moonStatus = planetStatus(moonHoriz.horizon.altitude, sunAltitudeDeg);
+
+  const moonEphemeris: PlanetEphemeris = {
+    id: 'moon',
+    name: 'Moon',
+    position: vectorToScene(moonHelio),
+    heliocentricAu: [moonHelio.x, moonHelio.y, moonHelio.z],
+    altitudeDeg: moonHoriz.horizon.altitude,
+    azimuthDeg: moonHoriz.horizon.azimuth,
+    rightAscensionHours: moonHoriz.equatorial.ra,
+    declinationDeg: moonHoriz.equatorial.dec,
+    distanceAu: moonIllum?.geo_dist ?? null,
+    magnitude: moonIllum?.mag ?? null,
+    phaseFraction: moonIllum?.phase_fraction ?? null,
+    status: moonStatus,
+    visibleThroughTelescope: moonStatus === 'visible',
+  };
+
+  const sunStatus = planetStatus(sun.horizon.altitude, sunAltitudeDeg);
+  const sunEphemeris: PlanetEphemeris = {
+    id: 'sun',
+    name: 'Sun',
+    position: [0, 0, 0],
+    heliocentricAu: [0, 0, 0],
+    altitudeDeg: sun.horizon.altitude,
+    azimuthDeg: sun.horizon.azimuth,
+    rightAscensionHours: sun.equatorial.ra,
+    declinationDeg: sun.equatorial.dec,
+    distanceAu: 1,
+    magnitude: -26.74,
+    phaseFraction: 1,
+    status: sunStatus,
+    visibleThroughTelescope: sunStatus === 'visible',
+  };
+
+  planets.push(moonEphemeris, sunEphemeris);
+
   return {
     date,
     sunAltitudeDeg,
@@ -113,12 +154,18 @@ export function formatDegrees(value: number | null, digits = 1): string {
 }
 
 export function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
+  const timeStr = new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
   }).format(date);
+
+  const offsetMins = -date.getTimezoneOffset();
+  const offsetHours = offsetMins / 60;
+  const sign = offsetHours >= 0 ? '+' : '';
+  
+  return `${timeStr} ${sign}${offsetHours}`;
 }
 
 export function formatUtc(date: Date): string {
@@ -127,4 +174,27 @@ export function formatUtc(date: Date): string {
 
 export function defaultLocation(): GeoPosition {
   return DEFAULT_LOCATION;
+}
+
+export function getVisibilityTimeline(bodyName: string, date: Date, position: GeoPosition | null): AltitudePoint[] {
+  const observer = createObserver(position);
+  let body: Astronomy.Body;
+  try {
+    body = bodyFromName(bodyName);
+  } catch {
+    return [];
+  }
+
+  // Calculate altitude from -12h to +12h relative to 'date'
+  // Use 48 points for a relatively smooth curve (every 30 mins)
+  const data: AltitudePoint[] = [];
+  const startMs = date.getTime() - 12 * 3600 * 1000;
+  
+  for (let i = 0; i <= 48; i++) {
+    const t = new Date(startMs + i * 30 * 60 * 1000);
+    const { horizon } = bodyHorizon(body, t, observer);
+    data.push({ timeMs: t.getTime(), altitudeDeg: horizon.altitude });
+  }
+
+  return data;
 }

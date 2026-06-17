@@ -50,3 +50,8 @@ export type FocusTarget = {
   id: string | 'panorama';
   nonce: number;
 };
+
+export type AltitudePoint = {
+  timeMs: number;
+  altitudeDeg: number;
+};

@@ -41,7 +41,6 @@ export const PLANETS: PlanetConfig[] = [
     radius: 1.65,
     rotationPeriodHours: 24.62,
     axialTiltDeg: 25.19,
-    moons: 2,
   },
   {
     id: 'jupiter',
@@ -52,7 +51,6 @@ export const PLANETS: PlanetConfig[] = [
     radius: 5.8,
     rotationPeriodHours: 9.93,
     axialTiltDeg: 3.13,
-    moons: 4,
   },
   {
     id: 'saturn',
@@ -64,7 +62,6 @@ export const PLANETS: PlanetConfig[] = [
     rotationPeriodHours: 10.7,
     axialTiltDeg: 26.73,
     hasRings: true,
-    moons: 5,
   },
   {
     id: 'uranus',
